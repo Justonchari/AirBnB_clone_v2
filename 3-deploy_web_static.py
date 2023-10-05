@@ -1,52 +1,54 @@
 #!/usr/bin/python3
-""" Fabric script that generates a .tgz archive """
-from fabric.api import *
-from datetime import datetime
-import os
+from fabric.api import put, run, local, env
+from time import strftime
+from datetime import date
+from os import path
 
-env.hosts = ["ubuntu@54.90.32.25", "ubuntu@100.25.222.248"]
+env.hosts = ["54.90.32.25", "100.25.222.248"]
+
 
 def do_pack():
-    """Create a compressed archive from web_static folder."""
-    local("mkdir -p versions")
-    now = datetime.now()
-    archive_name = "web_static_{}.tgz".format(now.strftime("%Y%m%d%H%M%S"))
-    result = local("tar -cvzf versions/{} web_static".format(archive_name))
-    if result.succeeded:
-        return os.path.join("versions", archive_name)
-    else:
+    """ A script that generates archive the contents of web_static folder"""
+
+    filename = strftime("%Y%m%d%H%M%S")
+    try:
+        local("mkdir -p versions")
+        local("tar -czvf versions/web_static_{}.tgz web_static/"
+              .format(filename))
+
+        return "versions/web_static_{}.tgz".format(filename)
+
+    except Exception as e:
         return None
 
+
 def do_deploy(archive_path):
-    """Fabric script that distributes an archive to web servers"""
-    try:
-        with_ext = archive_path.split("/")[-1]
-        without_ext = archive_path.split("/")[-1].split(".")[0]
-        put(archive_path, "/tmp")
-        run("mkdir -p /data/web_static/releases/" + without_ext)
-        run(
-            "tar -xzf /tmp/"
-            + with_ext + " -C /data/web_static/releases/"
-            + without_ext
-        )
-        run("rm /tmp/" + with_ext)
-        run(
-            "mv /data/web_static/releases/"
-            + without_ext
-            + "/web_static/* /data/web_static/releases/"
-            + without_ext
-        )
-        run("rm -rf /data/web_static/releases/"
-            + without_ext + "/web_static")
-        run("rm -rf /data/web_static/current")
-        run(
-            "ln -s /data/web_static/releases/"
-            + without_ext
-            + "/ /data/web_static/current"
-        )
-        return True
-    except Exception:
+    """Fabric script that distributes
+    an archive to your web server"""
+
+    if not path.exists(archive_path):
         return False
+    try:
+        tgzfile = archive_path.split("/")[-1]
+        print(tgzfile)
+        filename = tgzfile.split(".")[0]
+        print(filename)
+        pathname = "/data/web_static/releases/" + filename
+        put(archive_path, '/tmp/')
+        run("mkdir -p /data/web_static/releases/{}/".format(filename))
+        run("tar -zxvf /tmp/{} -C /data/web_static/releases/{}/"
+            .format(tgzfile, filename))
+        run("rm /tmp/{}".format(tgzfile))
+        run("mv /data/web_static/releases/{}/web_static/*\
+            /data/web_static/releases/{}/".format(filename, filename))
+        run("rm -rf /data/web_static/releases/{}/web_static".format(filename))
+        run("rm -rf /data/web_static/current")
+        run("ln -s /data/web_static/releases/{}/ /data/web_static/current"
+            .format(filename))
+        return True
+    except Exception as e:
+        return False
+
 
 def deploy():
     """run the 2 functions"""
