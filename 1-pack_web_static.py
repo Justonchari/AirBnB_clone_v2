@@ -4,6 +4,7 @@ from fabric.api import local
 from datetime import datetime
 import os
 
+
 def do_pack():
     """Create a compressed archive from web_static folder."""
     local("mkdir -p versions")
