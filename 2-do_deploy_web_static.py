@@ -20,6 +20,7 @@ def do_pack():
         return None
 
 
+
 def do_deploy(archive_path):
     """Fabric script that distributes an archive to web servers"""
     try:
@@ -46,7 +47,7 @@ def do_deploy(archive_path):
             "ln -s /data/web_static/releases/"
             + without_ext
             + "/ /data/web_static/current"
-        )`
+        )
         return True
     except Exception:
         return False
