@@ -4,7 +4,9 @@ from fabric.api import *
 from datetime import datetime
 import os
 
+
 env.hosts = ["ubuntu@54.90.32.25", "ubuntu@100.25.222.248"]
+
 
 def do_pack():
     """Create a compressed archive from web_static folder."""
@@ -16,6 +18,7 @@ def do_pack():
         return os.path.join("versions", archive_name)
     else:
         return None
+
 
 def do_deploy(archive_path):
     """Fabric script that distributes an archive to web servers"""
@@ -43,9 +46,7 @@ def do_deploy(archive_path):
             "ln -s /data/web_static/releases/"
             + without_ext
             + "/ /data/web_static/current"
-        )
+        )`
         return True
     except Exception:
         return False
-
-
